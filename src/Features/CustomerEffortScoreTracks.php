@@ -21,6 +21,16 @@ class CustomerEffortScoreTracks {
 	protected static $instance = null;
 
 	/**
+	 * Option name for the set of actions that have been shown.
+	 */
+	const SHOWN_FOR_ACTIONS_OPTION_NAME = 'wcadmin_ces_shown_for_actions';
+
+	/**
+	 * Action name for produce add/publish.
+	 */
+	const PRODUCT_ADD_PUBLISH_ACTION_NAME = 'product_add_publish';
+
+	/**
 	 * Get class instance.
 	 */
 	public static function get_instance() {
@@ -45,6 +55,18 @@ class CustomerEffortScoreTracks {
 	 * @param WP_Post $post The post, not used.
 	 */
 	public function add_meta_boxes_product( $post ) {
+		// Only add the JS to trigger the CES modal if
+		// this modal hasn't been dismissed or actioned yet for this action.
+		$shown_for_features = get_option( self::SHOWN_FOR_ACTIONS_OPTION_NAME, array() );
+		$has_been_shown     = in_array(
+			self::PRODUCT_ADD_PUBLISH_ACTION_NAME,
+			$shown_for_features,
+			true
+		);
+		if ( $has_been_shown ) {
+			return;
+		}
+
 		wc_enqueue_js(
 			"
 			(function() {
@@ -54,7 +76,7 @@ class CustomerEffortScoreTracks {
 
 				$( '#publish' ).click( function() {
 					var json = JSON.stringify( [ {
-						trackName: 'product_add_publish_effort_score',
+						action: '" . self::PRODUCT_ADD_PUBLISH_ACTION_NAME . "',
 						label: '" . __( 'Provide effort for adding a new product', 'woocommerce-admin' ) . "',					
 					} ] );
 					localStorage.setItem( 'customerEffortScoreTracks', json );

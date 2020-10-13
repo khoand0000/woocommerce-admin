@@ -75,19 +75,19 @@ if ( appRoot ) {
 }
 
 // Set up customer effort score tracking.
-const root                           = appRoot || embeddedRoot;
+const root = appRoot || embeddedRoot;
 const customerEffortScoreTracksQueue = JSON.parse(
 	window.localStorage.getItem( 'customerEffortScoreTracks' ) || '[]'
 );
-customerEffortScoreTracksQueue.forEach( item => {
+customerEffortScoreTracksQueue.forEach( ( item ) => {
 	render(
 		<CustomerEffortScoreTracks
 			initiallyVisible={ true }
-			trackName={ item.trackName }
+			action={ item.action }
 			label={ item.label }
 			trackProps={ {} }
 		/>,
-		root.insertBefore( document.createElement( 'div', ), null )
+		root.insertBefore( document.createElement( 'div' ), null )
 	);
 } );
 window.localStorage.removeItem( 'customerEffortScoreTracks' );
