@@ -55,8 +55,14 @@ class CustomerEffortScoreTracks {
 	 * @param WP_Post $post The post, not used.
 	 */
 	public function add_meta_boxes_product( $post ) {
-		// Only add the JS to trigger the CES modal if
-		// this modal hasn't been dismissed or actioned yet for this action.
+		// Only add the JS if tracking is allowed.
+		$allow_tracking = 'yes' === get_option( 'woocommerce_allow_tracking', 'no' );
+		if ( ! $allow_tracking ) {
+			return;
+		}
+
+		// Only add the JS if this modal hasn't been dismissed or actioned yet
+		// for this action.
 		$shown_for_features = get_option( self::SHOWN_FOR_ACTIONS_OPTION_NAME, array() );
 		$has_been_shown     = in_array(
 			self::PRODUCT_ADD_PUBLISH_ACTION_NAME,
