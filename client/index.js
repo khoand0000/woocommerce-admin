@@ -82,7 +82,7 @@ const customerEffortScoreTracksQueue = JSON.parse(
 customerEffortScoreTracksQueue.forEach( ( item ) => {
 	render(
 		<CustomerEffortScoreTracks
-			initiallyVisible={ true }
+			visible={ true }
 			action={ item.action }
 			label={ item.label }
 			trackProps={ {} }

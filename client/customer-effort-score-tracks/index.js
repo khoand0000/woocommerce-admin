@@ -14,41 +14,52 @@ import { OPTIONS_STORE_NAME } from '@woocommerce/data';
 import CustomerEffortScore from './customer-effort-score';
 
 const SHOWN_FOR_ACTIONS_OPTION_NAME = 'wcadmin_ces_shown_for_actions';
+const ALLOW_TRACKING_OPTION_NAME = 'woocommerce_allow_tracking';
 
 /**
  * A CustomerEffortScore wrapper that uses tracks to track the selected
  * customer effort score.
  *
- * @param {Object}   props                              Component props.
- * @param {boolean}  props.initiallyVisible             Whether or not the tracks modal is initially visible.
- * @param {string}   props.action                       The action name sent to Tracks.
- * @param {string}   props.label                        The label displayed in the modal.
- * @param {Array}    props.cesShownForActions           The array of actions that the CES modal has been shown for.
- * @param {boolean}  props.requestingCesShownForActions Whether cesShownForActions is still being requested.
- * @param {Function} props.updateOptions                Function to update options.
+ * @param {Object}   props                    Component props.
+ * @param {boolean}  props.visible            Whether or not the tracks modal is visible.
+ * @param {string}   props.action             The action name sent to Tracks.
+ * @param {string}   props.label              The label displayed in the modal.
+ * @param {Array}    props.cesShownForActions The array of actions that the CES modal has been shown for.
+ * @param {boolean}  props.allowTracking      Whether tracking is allowed or not.
+ * @param {boolean}  props.resolving          Are values still being resolving.
+ * @param {Function} props.updateOptions      Function to update options.
  */
 function CustomerEffortScoreTracks( {
-	initiallyVisible,
+	visible,
 	action,
 	label,
 	cesShownForActions,
-	requestingCesShownForActions,
+	allowTracking,
+	resolving,
 	updateOptions,
 } ) {
-	const [ visible, setVisible ] = useState( initiallyVisible );
 	const [ shown, setShown ] = useState( false );
 
-	if ( requestingCesShownForActions ) {
+	// Don't show if props are still being requested.
+	if ( resolving ) {
 		return null;
 	}
 
+	// Don't show if tracking is disallowed.
+	if ( ! allowTracking ) {
+		return null;
+	}
+
+	// Don't show if this action has already been shown, unless `shown` is
+	// true - in which case cesShownForActions may contain the action but the
+	// modal should still be shown.
 	if ( cesShownForActions.indexOf( action ) !== -1 && ! shown ) {
 		return null;
 	}
 
 	// Use the `shown` state value to only update the shown_for_actions option
 	// once.
-	if ( ! requestingCesShownForActions && visible && ! shown ) {
+	if ( visible && ! shown ) {
 		setShown( true );
 		updateOptions( {
 			[ SHOWN_FOR_ACTIONS_OPTION_NAME ]: [
@@ -69,7 +80,6 @@ function CustomerEffortScoreTracks( {
 		<CustomerEffortScore
 			trackCallback={ trackCallback }
 			visible={ visible }
-			toggleVisible={ () => setVisible( ! visible ) }
 			label={ label }
 		/>
 	);
@@ -77,12 +87,12 @@ function CustomerEffortScoreTracks( {
 
 CustomerEffortScoreTracks.propTypes = {
 	/**
-	 * Whether or not the tracks is initially visible. True is used for when
+	 * Whether or not the CES modal is visible. True is used for when
 	 * this is loaded on page load (in client/index.js). False is used if the
-	 * tracks modal is loaded as part of the layout and displayed
-	 * programmatically.
+	 * modal is loaded as part of the layout and displayed
+	 * by setting the component prop to true.
 	 */
-	initiallyVisible: PropTypes.bool,
+	visible: PropTypes.bool,
 	/**
 	 * The action name sent to Tracks.
 	 */
@@ -96,13 +106,17 @@ CustomerEffortScoreTracks.propTypes = {
 	 */
 	cesShownForActions: PropTypes.arrayOf( PropTypes.string ).isRequired,
 	/**
-	 * Whether cesShownForActions is still being requested.
+	 * Whether tracking is allowed or not.
 	 */
-	requestingCesShownForActions: PropTypes.bool,
+	allowTracking: PropTypes.bool.isRequired,
+	/**
+	 * Whether props are still being resolved.
+	 */
+	resolving: PropTypes.bool.isRequired,
 	/**
 	 * Function to update options.
 	 */
-	updateOptions: PropTypes.func,
+	updateOptions: PropTypes.func.isRequired,
 };
 
 export default compose(
@@ -110,13 +124,18 @@ export default compose(
 		const { getOption, isResolving } = select( OPTIONS_STORE_NAME );
 		const cesShownForActions =
 			getOption( SHOWN_FOR_ACTIONS_OPTION_NAME ) || [];
-		const requestingCesShownForActions = isResolving( 'getOption', [
+		const allowTrackingOption =
+			getOption( ALLOW_TRACKING_OPTION_NAME ) || 'no';
+		const allowTracking = allowTrackingOption === 'yes';
+		const resolving = isResolving( 'getOption', [
 			SHOWN_FOR_ACTIONS_OPTION_NAME,
+			ALLOW_TRACKING_OPTION_NAME,
 		] );
 
 		return {
 			cesShownForActions,
-			requestingCesShownForActions,
+			allowTracking,
+			resolving,
 		};
 	} ),
 	withDispatch( ( dispatch ) => {

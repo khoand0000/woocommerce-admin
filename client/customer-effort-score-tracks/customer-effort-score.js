@@ -18,30 +18,27 @@ import './customer-effort-score.scss';
  * @param {Object}   props               Component props.
  * @param {Function} props.trackCallback Function to call when the modal is activated.
  * @param {boolean}  props.visible       Whether or not the tracks modal is visible.
- * @param {Function} props.toggleVisible Callback to toggle the visible prop.
  * @param {string}   props.label         The label displayed in the modal.
  */
-function CustomerEffortScore( {
-	trackCallback,
-	visible,
-	toggleVisible,
-	label,
-} ) {
+function CustomerEffortScore( { trackCallback, visible, label } ) {
 	const [ score, setScore ] = useState( 0 );
+	const [ dismissed, setDismissed ] = useState( false );
 
-	if ( ! visible ) {
+	if ( ! visible || dismissed ) {
 		return null;
 	}
 
 	function close() {
-		setScore( 3 );  // TODO let this happen in the UI
+		setScore( 3 ); // TODO let this happen in the UI
 
-		toggleVisible();
+		setDismissed( true );
 		trackCallback( score );
 	}
 
 	return (
-		<p className="customer-effort-score_modal">{ label } <button onClick={ close }>Click me</button></p>
+		<p className="customer-effort-score_modal">
+			{ label } <button onClick={ close }>Click me</button>
+		</p>
 	);
 }
 
@@ -52,15 +49,11 @@ CustomerEffortScore.propTypes = {
 	trackCallback: PropTypes.func.isRequired,
 	/**
 	 * Whether or not the tracks is visible. True is used for when
-     * this is loaded on page load (in client/index.js). False is used if the
-     * tracks modal is loaded as part of the layout and displayed
-     * programmatically.
+	 * this is loaded on page load (in client/index.js). False is used if the
+	 * tracks modal is loaded as part of the layout and displayed
+	 * programmatically.
 	 */
 	visible: PropTypes.bool.isRequired,
-	/**
-	 * Callback to toggle the visible prop.
-	 */
-	toggleVisible: PropTypes.func.isRequired,
 	/**
 	 * The label displayed in the modal.
 	 */
