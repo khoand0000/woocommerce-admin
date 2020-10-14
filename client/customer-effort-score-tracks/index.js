@@ -15,6 +15,9 @@ import CustomerEffortScore from './customer-effort-score';
 
 const SHOWN_FOR_ACTIONS_OPTION_NAME = 'wcadmin_ces_shown_for_actions';
 const ALLOW_TRACKING_OPTION_NAME = 'woocommerce_allow_tracking';
+const ADMIN_INSTALL_TIMESTAMP_OPTION_NAME =
+	'woocommerce_admin_install_timestamp';
+const MONTH_IN_SECONDS = ( 60 * 60 * 24 * 365 ) / 12;
 
 /**
  * A CustomerEffortScore wrapper that uses tracks to track the selected
@@ -28,6 +31,7 @@ const ALLOW_TRACKING_OPTION_NAME = 'woocommerce_allow_tracking';
  * @param {boolean}  props.allowTracking      Whether tracking is allowed or not.
  * @param {boolean}  props.resolving          Are values still being resolving.
  * @param {Function} props.updateOptions      Function to update options.
+ * @param {number}   props.storeAge           The age of the store in months.
  */
 function CustomerEffortScoreTracks( {
 	visible,
@@ -37,6 +41,7 @@ function CustomerEffortScoreTracks( {
 	allowTracking,
 	resolving,
 	updateOptions,
+	storeAge,
 } ) {
 	const [ shown, setShown ] = useState( false );
 
@@ -70,9 +75,10 @@ function CustomerEffortScoreTracks( {
 	}
 
 	const trackCallback = ( score ) => {
-		recordEvent( 'wcadmin_ces_feedback', {
+		recordEvent( 'ces_feedback', {
 			action,
 			score,
+			store_age: storeAge,
 		} );
 	};
 
@@ -117,6 +123,10 @@ CustomerEffortScoreTracks.propTypes = {
 	 * Function to update options.
 	 */
 	updateOptions: PropTypes.func.isRequired,
+	/**
+	 * The age of the store in months.
+	 */
+	storeAge: PropTypes.number,
 };
 
 export default compose(
@@ -127,15 +137,22 @@ export default compose(
 		const allowTrackingOption =
 			getOption( ALLOW_TRACKING_OPTION_NAME ) || 'no';
 		const allowTracking = allowTrackingOption === 'yes';
+		const adminInstallTimestamp =
+			getOption( ADMIN_INSTALL_TIMESTAMP_OPTION_NAME ) || 0;
+		const storeAgeInSeconds = Date.now() / 1000 - adminInstallTimestamp;
+		const storeAge = Math.round( storeAgeInSeconds / MONTH_IN_SECONDS );
+
 		const resolving = isResolving( 'getOption', [
 			SHOWN_FOR_ACTIONS_OPTION_NAME,
 			ALLOW_TRACKING_OPTION_NAME,
+			ADMIN_INSTALL_TIMESTAMP_OPTION_NAME,
 		] );
 
 		return {
 			cesShownForActions,
 			allowTracking,
 			resolving,
+			storeAge,
 		};
 	} ),
 	withDispatch( ( dispatch ) => {
