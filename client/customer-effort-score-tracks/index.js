@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { recordEvent } from '@woocommerce/tracks';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
-import { OPTIONS_STORE_NAME } from '@woocommerce/data';
+import { OPTIONS_STORE_NAME, MONTH } from '@woocommerce/data';
 
 /**
  * Internal dependencies
@@ -17,7 +17,6 @@ const SHOWN_FOR_ACTIONS_OPTION_NAME = 'wcadmin_ces_shown_for_actions';
 const ALLOW_TRACKING_OPTION_NAME = 'woocommerce_allow_tracking';
 const ADMIN_INSTALL_TIMESTAMP_OPTION_NAME =
 	'woocommerce_admin_install_timestamp';
-const MONTH_IN_SECONDS = ( 60 * 60 * 24 * 365 ) / 12;
 
 /**
  * A CustomerEffortScore wrapper that uses tracks to track the selected
@@ -139,9 +138,10 @@ export default compose(
 		const allowTracking = allowTrackingOption === 'yes';
 		const adminInstallTimestamp =
 			getOption( ADMIN_INSTALL_TIMESTAMP_OPTION_NAME ) || 0;
-		const storeAgeInSeconds = Date.now() / 1000 - adminInstallTimestamp;
-		const storeAge = Math.round( storeAgeInSeconds / MONTH_IN_SECONDS );
-
+		// Date.now() is ms since Unix epoch, adminInstallTimestamp is in
+		// seconds since Unix epoch.
+		const storeAgeInSeconds = Date.now() - adminInstallTimestamp * 1000;
+		const storeAge = Math.round( storeAgeInSeconds / MONTH );
 		const resolving = isResolving( 'getOption', [
 			SHOWN_FOR_ACTIONS_OPTION_NAME,
 			ALLOW_TRACKING_OPTION_NAME,

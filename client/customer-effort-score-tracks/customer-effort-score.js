@@ -21,7 +21,7 @@ import './customer-effort-score.scss';
  * @param {string}   props.label         The label displayed in the modal.
  */
 function CustomerEffortScore( { trackCallback, visible, label } ) {
-	const [ score, setScore ] = useState( 0 );
+	//const [ score, setScore ] = useState( 0 );
 	const [ dismissed, setDismissed ] = useState( false );
 
 	if ( ! visible || dismissed ) {
@@ -29,10 +29,10 @@ function CustomerEffortScore( { trackCallback, visible, label } ) {
 	}
 
 	function close() {
-		setScore( 3 ); // TODO let this happen in the UI
+		//setScore( 3 ); // TODO let this happen in the UI
 
 		setDismissed( true );
-		trackCallback( score );
+		trackCallback( 3 );
 	}
 
 	return (
